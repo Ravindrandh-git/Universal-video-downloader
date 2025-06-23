@@ -48,7 +48,7 @@ def admin_logout():
     session.pop('admin_logged_in', None)
     return redirect(url_for('admin_login'))
 
-# ---------- Main Routes --------- #-
+
 @app.route('/')
 def index():
     return render_template("index.html")
@@ -77,7 +77,7 @@ def download():
             'merge_output_format': 'mp4'
         }
 
-        # Add cookies if needed #
+        
         if any(site in url for site in ['instagram.com', 'facebook.com']):
             ydl_opts['cookiefile'] = 'cookies.txt'
 
@@ -91,7 +91,7 @@ def download():
             message = f"❌ Error: {str(e)}"
             title = "Download Failed"
 
-        # Log the download attempt #
+        
         format_selected = quality or "unknown"
         ip = request.remote_addr
         time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -111,6 +111,7 @@ def download():
 
     return render_template("index.html", message=message)
 
-# ---------- Run App ----------
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT",5000))
+    app.run(host="0.0.0.0", port=port)
