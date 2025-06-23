@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="dashboard-container">
+
+        <h1 class="admin-title">Welcome, Admin 👋</h1>
+
+        <h2 class="section-title">Download History</h2>
+
+        <input type="text" id="searchInput" placeholder="🔍 Search downloads..." class="search-bar">
+
+        <div class="table-container">
+            <table class="history-table" id="downloadsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Format</th>
+                        <th>Time</th>
+                        <th>IP Address</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in logs %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                        <td>{{ row[2] }}</td>
+                        <td>{{ row[3] }}</td>
+                        <td>{{ row[4] }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('delete_log', log_id=row[0]) }}" onsubmit="return confirm('Delete this record?');">
+                                <button type="submit" class="delete-button">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <a class="logout-button" href="{{ url_for('admin_logout') }}">Logout</a>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById("searchInput");
+        searchInput.addEventListener("input", () => {
+            const filter = searchInput.value.toLowerCase();
+            const rows = document.querySelectorAll("#downloadsTable tbody tr");
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(filter) ? "" : "none";
+            });
+        });
+    </script>
+</body>
+</html>

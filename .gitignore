@@ -1,0 +1,5 @@
+cookies.txt
+downloads.db
+_pycache_/
+*.pyc
+.env

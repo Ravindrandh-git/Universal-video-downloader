@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport"
+     content="width=device-width,initial-scale=1.0" />
+    <title>Universal Video Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='sravi_64.ico') }}" type="image/x-icon">
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='sravi.png') }}" alt="Logo" class="logo" />
+        <h1>Universal Video Downloader</h1>
+        <form action="/download" method="post" id="downloadForm">
+            <input type="text" name="url" placeholder="🔍Paste your URL here" required><br>
+            <label for="format">Choose Format</label>
+            <select name="format" required>
+                <option value="1080p">1080p (HD video)</option>
+                <option value="720p">720p (video)</option>
+                <option value="480p">480p (video)</option>
+                <option value="360p">360p (video)</option>
+                <option value="240p">240p (video)</option>
+                <option value="audio">Audio only (MP3)</option>
+            </select><br><br>
+
+            <button type="submit" id="downloadbtn">Download</button>
+            <br>
+            <button class="theme -toggle" onclick="toggleTheme()" id="themeToggleBtn">🌙 Dark mode</button>
+        </form>
+        <div id="loader" style="display: none;">
+           <p>⏳Downloding...please wait..</p>
+        </div>
+        {% if message %}
+            <p>{{ message }}</p>
+        {% endif %}
+
+        <footer class="footer-inside">
+
+          <small>
+            Built with ❤️ | ✉️<a href="mailto:ravindranadhpilli9@gmail.com">Contact Us</a> | 
+            🔗<a href="https://www.instagram.com/ravindranadhpilli/" target="_blank">instagram</a>
+        </small>
+         </footer>
+    </div>
+     <script>
+      const themeToggleBtn = document.getElementById("themeToggleBtn");
+
+  // Load saved theme from localStorage
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+    themeToggleBtn.textContent = "☀️ Light Mode";
+  } else {
+    themeToggleBtn.textContent = "🌙 Dark Mode";
+  }
+
+  function toggleTheme() {
+    document.body.classList.toggle("dark");
+    const isDark = document.body.classList.contains("dark");
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+    themeToggleBtn.textContent = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
+  }
+    const form = document.getElementById('downloadForm');
+    const loader = document.getElementById('loader');
+    const button = document.getElementById('downloadBtn');
+
+    form.addEventListener('submit', function () {
+      loader.style.display = 'block';
+      button.disabled = true;
+    });
+  </script>
+</body>
+</html>
