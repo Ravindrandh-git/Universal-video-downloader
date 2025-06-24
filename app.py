@@ -84,10 +84,12 @@ def download():
 
     ydl_opts = {
         'outtmpl': os.path.join(DOWNLOAD_DIR, '%(title)s.%(ext)s'),
-        'quiet': True,
+        'quiet': False,
         'noplaylist': True,
+        'no_warnings': True,
         'format': format_map.get(quality, 'bestvideo+bestaudio/best'),
         'merge_output_format': 'mp4',
+        'cookiesfile': 'cookies.txt',
         'ffmpeg_location': '/usr/bin/ffmpeg'
     }
 
