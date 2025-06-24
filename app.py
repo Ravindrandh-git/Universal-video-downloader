@@ -119,7 +119,7 @@ def download():
     except Exception as db_err:
         print(f"Database error: {db_err}")
 
-    return render_template("index.html", message=message, filename=filename)
+    return render_template("index.html", message=message)
 
 @app.route('/downloads/<filename>')
 def serve_file(filename):
