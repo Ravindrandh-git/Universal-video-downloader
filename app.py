@@ -8,8 +8,8 @@ import yt_dlp
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
 
-ADMIN_USERNAME = ''
-ADMIN_PASSWORD = ''
+ADMIN_USERNAME = 'Ravindranad'
+ADMIN_PASSWORD = 'Syam@54321'
 
 # 🔧 Use /tmp for writable storage on Render
 DOWNLOAD_DIR = "/tmp/downloads"
@@ -59,9 +59,19 @@ def index():
 @app.route('/download', methods=['POST'])
 def download():
     url = request.form.get('url')
-    quality = request.form.get('quality')
-    message = ""
-    filename = None
+    quality = request.form.get('formate')
+
+    if not url:
+        flash("Please enter a video URL")
+        return redirect(url_for("home"))
+    
+    print("URL received:", url)
+    print("Formate selected:", quality)
+
+    os.environ["path"] += os.pathsep + "/usr/bin"
+
+    if not os.path.exists("downloads"):
+        os.makedirs("donloads")
 
     format_map = {
         "1080p": "bestvideo[height<=1080]+bestaudio/best[height<=1080]",
