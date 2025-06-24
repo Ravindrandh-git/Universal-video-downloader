@@ -19,5 +19,5 @@ pytube==15.0.0
 requests==2.32.4
 urllib3==2.4.0
 virtualenv==20.31.2
-Werkzug==3.1.3
+Werkzeug
 yt-dlp==2025.6.9
