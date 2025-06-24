@@ -1,9 +1,10 @@
 services:
   - type: web
-    name: universal-downloader
+    name: video-downloader
     env: python
-    buildCommand: ""
-    startCommand: gunicorn app:app
-    envVars:
-      - key: FLASK_ENV
-        value: production
+    region: oregon
+    buildCommand: |
+      apt-get update
+      apt-get install -y ffmpeg
+      pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
