@@ -8,8 +8,8 @@ import yt_dlp
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
 
-ADMIN_USERNAME = 'Ravindranadh'
-ADMIN_PASSWORD = 'Syam@54321'
+ADMIN_USERNAME = ''
+ADMIN_PASSWORD = ''
 
 # 🔧 Use /tmp for writable storage on Render
 DOWNLOAD_DIR = "/tmp/downloads"
