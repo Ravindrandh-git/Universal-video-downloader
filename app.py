@@ -1,9 +1,9 @@
 import os
 import sqlite3
+import base64
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
 import yt_dlp
-import shutil
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
@@ -11,16 +11,16 @@ app.secret_key = 'supersecretkey'
 ADMIN_USERNAME = 'Ravindranadh'
 ADMIN_PASSWORD = 'Syam@54321'
 
-# Log ffmpeg path (useful for debugging on Render)
-print("FFmpeg path:", shutil.which("ffmpeg"))
+# 🔧 Use /tmp for writable storage on Render
+DOWNLOAD_DIR = "/tmp/downloads"
+DB_PATH = "/tmp/downloads.db"
+COOKIES_FILE = os.path.join(os.getcwd(), "cookies.txt")
 
-# Download folder
-DOWNLOAD_DIR = os.path.join(os.getcwd(), "downloads")
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
-# Ensure database exists
+# ✅ Initialize database
 def init_db():
-    conn = sqlite3.connect('downloads.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''
         CREATE TABLE IF NOT EXISTS downloads (
@@ -36,35 +36,22 @@ def init_db():
 
 init_db()
 
-# Admin Routes
-@app.route('/admin/login', methods=['GET', 'POST'])
-def admin_login():
-    if request.method == 'POST':
-        if request.form['username'] == ADMIN_USERNAME and request.form['password'] == ADMIN_PASSWORD:
-            session['admin_logged_in'] = True
-            return redirect(url_for('admin_dashboard'))
-        return render_template('admin_login.html', error="Invalid credentials")
-    return render_template('admin_login.html')
+# ✅ Decode cookies from Render environment into cookies.txt
+cookies_b64 = os.environ.get("COOKIES_B64")
+if cookies_b64:
+    try:
+        with open(COOKIES_FILE, "wb") as f:
+            f.write(base64.b64decode(cookies_b64))
+        print("✅ cookies.txt written from environment.")
+    except Exception as e:
+        print("❌ Failed to write cookies.txt:", e)
+else:
+    print("⚠️ COOKIES_B64 not set.")
 
-@app.route('/admin/dashboard')
-def admin_dashboard():
-    if not session.get('admin_logged_in'):
-        return redirect(url_for('admin_login'))
+# -------------------------#
+# 🌐 Public Routes         #
+# -------------------------#
 
-    conn = sqlite3.connect('downloads.db')
-    c = conn.cursor()
-    c.execute("SELECT * FROM downloads ORDER BY id DESC")
-    logs = c.fetchall()
-    conn.close()
-
-    return render_template('admin_dashboard.html', logs=logs)
-
-@app.route('/admin/logout')
-def admin_logout():
-    session.pop('admin_logged_in', None)
-    return redirect(url_for('admin_login'))
-
-# Main Page
 @app.route('/')
 def index():
     return render_template("index.html")
@@ -90,11 +77,13 @@ def download():
         'quiet': True,
         'noplaylist': True,
         'format': format_map.get(quality, 'bestvideo+bestaudio/best'),
-        'merge_output_format': 'mp4'
+        'merge_output_format': 'mp4',
+        'ffmpeg_location': '/usr/bin/ffmpeg'
     }
 
-    if any(site in url for site in ['instagram.com', 'facebook.com']):
-        ydl_opts['cookiefile'] = 'cookies.txt'
+    # 🔒 Use cookies.txt only for Facebook/Instagram
+    if any(site in url for site in ['instagram.com', 'facebook.com']) and os.path.exists(COOKIES_FILE):
+        ydl_opts['cookiefile'] = COOKIES_FILE
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -106,9 +95,9 @@ def download():
         message = f"❌ Error: {str(e)}"
         title = "Download Failed"
 
-    # Log to database
+    # Log to DB
     try:
-        conn = sqlite3.connect('downloads.db')
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute("""
             INSERT INTO downloads (title, format, timestamp, ip_address)
@@ -126,20 +115,46 @@ def download():
 def serve_file(filename):
     return send_from_directory(DOWNLOAD_DIR, filename, as_attachment=True)
 
+# -------------------------#
+# 🔐 Admin Routes          #
+# -------------------------#
+
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        if request.form['username'] == ADMIN_USERNAME and request.form['password'] == ADMIN_PASSWORD:
+            session['admin_logged_in'] = True
+            return redirect(url_for('admin_dashboard'))
+        return render_template('admin_login.html', error="Invalid credentials")
+    return render_template('admin_login.html')
+
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT * FROM downloads ORDER BY id DESC")
+    logs = c.fetchall()
+    conn.close()
+
+    return render_template('admin_dashboard.html', logs=logs)
+
+@app.route('/admin/logout')
+def admin_logout():
+    session.pop('admin_logged_in', None)
+    return redirect(url_for('admin_login'))
+
 @app.route('/admin/delete/<int:log_id>', methods=['POST'])
 def delete_log(log_id):
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
 
-    conn = sqlite3.connect('downloads.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("DELETE FROM downloads WHERE id = ?", (log_id,))
     conn.commit()
     conn.close()
 
     return redirect(url_for('admin_dashboard'))
-
-#if __name__ == "__main__":
- #   app.run(debug=True)
-   # port = int(os.environ.get("PORT", 5000))
-    #app.run(host="0.0.0.0", port=port)
