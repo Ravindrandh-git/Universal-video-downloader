@@ -59,7 +59,7 @@ def index():
 @app.route('/download', methods=['POST'])
 def download():
     url = request.form.get('url')
-    quality = request.form.get('formate')
+    quality = request.form.get('format')
 
     if not url:
         flash("Please enter a video URL")
@@ -68,7 +68,7 @@ def download():
     print("URL received:", url)
     print("Formate selected:", quality)
 
-    os.environ["path"] += os.pathsep + "/usr/bin"
+    os.environ["path"] = os.getenv("path","") + os.pathsep + "/usr/bin"
 
     if not os.path.exists("downloads"):
         os.makedirs("donloads")
