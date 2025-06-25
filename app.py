@@ -12,7 +12,6 @@ ADMIN_PASSWORD = 'Syam@54321'
 
 DOWNLOAD_DIR = "/tmp/downloads"
 DB_PATH = "/tmp/downloads.db"
-
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 def init_db():
@@ -49,7 +48,7 @@ def download():
     print("Format selected:", quality)
 
     os.environ["PATH"] = os.getenv("PATH", "") + os.pathsep + "/usr/bin"
-    os.makedirs("downloads", exist_ok=True)
+    os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
     format_map = {
         "1080p": "bestvideo[height<=1080]+bestaudio/best[height<=1080]",
@@ -62,14 +61,16 @@ def download():
 
     if 'youtube.com' in url or 'youtu.be' in url:
         selected_format = format_map.get(quality, "bestvideo+bestaudio/best")
-    else:
+        cookie_file = 'auth/yt_cookies.txt'
+    elif 'instagram.com' in url:
         selected_format = 'best'
-
-    cookie_file = ''
-    if 'instagram.com' in url:
         cookie_file = 'auth/insta_cookies.txt'
     elif 'facebook.com' in url:
+        selected_format = 'best'
         cookie_file = 'auth/fb_cookies.txt'
+    else:
+        selected_format = 'best'
+        cookie_file = None
 
     ydl_opts = {
         'outtmpl': os.path.join(DOWNLOAD_DIR, '%(title)s.%(ext)s'),
@@ -152,5 +153,6 @@ def delete_log(log_id):
 
     return redirect(url_for('admin_dashboard'))
 
-#if __name__ == "__main__":
-  #  app.run(debug=True)
+# Uncomment to run locally
+# if __name__ == "__main__":
+#     app.run(debug=True)
