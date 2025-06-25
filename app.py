@@ -8,7 +8,7 @@ import yt_dlp
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
 
-ADMIN_USERNAME = 'Ravindranad'
+ADMIN_USERNAME = 'Ravindranadh'
 ADMIN_PASSWORD = 'Syam@54321'
 
 # 🔧 Use /tmp for writable storage on Render
