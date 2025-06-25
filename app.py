@@ -1,8 +1,7 @@
 import os
 import sqlite3
-import base64
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash
 import yt_dlp
 
 app = Flask(__name__)
@@ -11,14 +10,11 @@ app.secret_key = 'supersecretkey'
 ADMIN_USERNAME = 'Ravindranadh'
 ADMIN_PASSWORD = 'Syam@54321'
 
-# 🔧 Use /tmp for writable storage on Render
 DOWNLOAD_DIR = "/tmp/downloads"
 DB_PATH = "/tmp/downloads.db"
-COOKIES_FILE = os.path.join(os.getcwd(), "cookies.txt")
 
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
-# ✅ Initialize database
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -36,22 +32,6 @@ def init_db():
 
 init_db()
 
-# ✅ Decode cookies from Render environment into cookies.txt
-cookies_b64 = os.environ.get("COOKIES_B64")
-if cookies_b64:
-    try:
-        with open(COOKIES_FILE, "wb") as f:
-            f.write(base64.b64decode(cookies_b64))
-        print("✅ cookies.txt written from environment.")
-    except Exception as e:
-        print("❌ Failed to write cookies.txt:", e)
-else:
-    print("⚠️ COOKIES_B64 not set.")
-
-# -------------------------#
-# 🌐 Public Routes         #
-# -------------------------#
-
 @app.route('/')
 def index():
     return render_template("index.html")
@@ -63,15 +43,13 @@ def download():
 
     if not url:
         flash("Please enter a video URL")
-        return redirect(url_for("home"))
-    
+        return redirect(url_for("index"))
+
     print("URL received:", url)
-    print("Formate selected:", quality)
+    print("Format selected:", quality)
 
-    os.environ["path"] = os.getenv("path","") + os.pathsep + "/usr/bin"
-
-    if not os.path.exists("downloads"):
-        os.makedirs("donloads")
+    os.environ["PATH"] = os.getenv("PATH", "") + os.pathsep + "/usr/bin"
+    os.makedirs("downloads", exist_ok=True)
 
     format_map = {
         "1080p": "bestvideo[height<=1080]+bestaudio/best[height<=1080]",
@@ -82,20 +60,29 @@ def download():
         "best": "bestvideo+bestaudio/best"
     }
 
+    if 'youtube.com' in url or 'youtu.be' in url:
+        selected_format = format_map.get(quality, "bestvideo+bestaudio/best")
+    else:
+        selected_format = 'best'
+
+    cookie_file = ''
+    if 'instagram.com' in url:
+        cookie_file = 'auth/insta_cookies.txt'
+    elif 'facebook.com' in url:
+        cookie_file = 'auth/fb_cookies.txt'
+
     ydl_opts = {
         'outtmpl': os.path.join(DOWNLOAD_DIR, '%(title)s.%(ext)s'),
         'quiet': False,
         'noplaylist': True,
         'no_warnings': True,
-        'format': format_map.get(quality, 'bestvideo+bestaudio/best'),
+        'format': selected_format,
         'merge_output_format': 'mp4',
-        'cookiesfile': 'cookies.txt',
-        'ffmpeg_location': '/usr/bin/ffmpeg'
+        'ffmpeg_location': 'c:\\ffmpeg\\ffmpeg\\ffmpeg-7.1.1-essentials_build\\bin\\ffmpeg.exe'
     }
 
-    # 🔒 Use cookies.txt only for Facebook/Instagram
-    if any(site in url for site in ['instagram.com', 'facebook.com']) and os.path.exists(COOKIES_FILE):
-        ydl_opts['cookiefile'] = COOKIES_FILE
+    if cookie_file and os.path.exists(cookie_file):
+        ydl_opts['cookiefile'] = cookie_file
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -107,13 +94,11 @@ def download():
         message = f"❌ Error: {str(e)}"
         title = "Download Failed"
 
-    # Log to DB
     try:
         conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
-        c.execute("""
-            INSERT INTO downloads (title, format, timestamp, ip_address)
-            VALUES (?, ?, ?, ?)""",
+        c.execute(
+            "INSERT INTO downloads (title, format, timestamp, ip_address) VALUES (?, ?, ?, ?)",
             (title, quality or "unknown", datetime.now().strftime("%Y-%m-%d %H:%M:%S"), request.remote_addr)
         )
         conn.commit()
@@ -126,10 +111,6 @@ def download():
 @app.route('/downloads/<filename>')
 def serve_file(filename):
     return send_from_directory(DOWNLOAD_DIR, filename, as_attachment=True)
-
-# -------------------------#
-# 🔐 Admin Routes          #
-# -------------------------#
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -170,3 +151,6 @@ def delete_log(log_id):
     conn.close()
 
     return redirect(url_for('admin_dashboard'))
+
+#if __name__ == "__main__":
+  #  app.run(debug=True)

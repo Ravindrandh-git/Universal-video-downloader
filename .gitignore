@@ -1,4 +1,4 @@
-cookies.txt
+auth/*.txt
 downloads.db
 _pycache_/
 *.pyc

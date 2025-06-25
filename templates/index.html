@@ -68,5 +68,25 @@
       button.disabled = true;
     });
   </script>
+  <script>
+  const urlInput = document.getElementById('url');
+  const qualityWrapper = document.getElementById('quality-wrapper');
+
+  function checkURLType() {
+    const url = urlInput.value;
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      qualityWrapper.style.display = 'block';
+    } else {
+      qualityWrapper.style.display = 'none';
+    }
+  }
+
+  // Run on input change
+  urlInput.addEventListener('input', checkURLType);
+
+  // Run once on page load
+  window.onload = checkURLType;
+</script>
+
 </body>
 </html>

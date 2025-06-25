@@ -20,4 +20,4 @@ requests==2.32.4
 urllib3==2.4.0
 virtualenv==20.31.2
 Werkzeug
-yt-dlp==2025.6.9
+yt-dlp[ffmpeg]
