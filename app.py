@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, s
 import yt_dlp
 
 # Initialize Flask app
-app = Flask(_name_)
+app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # Replace with a secure key in production
 
 # Admin login details
@@ -183,4 +183,4 @@ def delete_log(log_id):
 
 # Uncomment to run locally
 # if _name_ == "_main_":
-#     app.run(debug=True
+#     app.run(debug=True)
