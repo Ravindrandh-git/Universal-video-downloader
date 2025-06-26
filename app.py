@@ -22,7 +22,7 @@ def save_cookie_from_env(env_key, target_path):
     raw_cookie = os.getenv(env_key)
     if not raw_cookie:
         return None
-    decoded = raw_cookie.encode().decoded('unicode_escape')
+    decoded = raw_cookie.encode().decode('unicode_escape')
     with open(target_path,"w") as f:
         f.write(decoded)
         return target_path
