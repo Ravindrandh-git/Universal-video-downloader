@@ -80,7 +80,7 @@ def download():
     # Determine cookie source based on platform
     cookies_path = None
     if 'youtube.com' in url or 'youtu.be' in url:
-        cookies_path = save_cookie_from_env("YT_COOKIES","/tmp/cookies.txt")
+        cookies_path = "/ect/secrets/YT_COOKIES"
     elif 'instagram.com' in url:
         cookies_path = "/etc/secrets/INSTA_COOKIES"
     elif 'facebook.com' in url:
